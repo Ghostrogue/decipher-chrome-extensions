@@ -11,7 +11,7 @@ function addJQuery(callback) {
 }
 
 // load jQuery and execute the main function   
-if (window.location.href.indexOf('.decipherinc.com/survey/')!=-1){        
+if (window.location.href.indexOf('v2.decipherinc.com/survey/')!=-1){        
     addJQuery(main);
 }
 
@@ -45,6 +45,8 @@ else if ($('.devToggle.expanded').length){
     $('.surveyInfo, .survey-info').toggle();
 }
 
+//Focus cursor on input box
+//$('input[type=text]').first().focus();
 
 function clearValues()
 {
@@ -183,11 +185,6 @@ function gotoPage(){
         clearValues();
         return;
     }
-    $(document).on('keypress',function(e) {
-        if (e.keyCode == 27) { 
-            return;
-        }
-    });
 
     fillNext();
 
@@ -213,10 +210,10 @@ function range(start, end)
 function fillPage(){
     //Only fill dev questions if there is a term
     if ($(".devContainer:has(div.surveyQuestion, div.question)").length){
-        if ($(".even, .odd").has("span:contains('TERM')").length){
+        if ($("tr,th").has("span:contains('TERM')").length){
             fillRadio();
         }
-        $('input:submit').click();
+        $('input[ type=submit]').click();
         return;
     }
 
@@ -265,7 +262,7 @@ function fillPage(){
 
 function fillText(){
 
-    var $text = $('.text').find(".element input:text");
+    var $text = $('.text').find(".element input[type=text]");
     if ($text.length){
         $text.each(function() {
             text = $(this).closest('tr').find('td').text();
@@ -287,7 +284,7 @@ function fillText(){
 //Currently only works for selects
 function fillOpenSpecify(){
 
-    var $text = $("input:text");
+    var $text = $("input[type=text]");
     if ($text.length){
         $text.each(function() {
             select = $(this).closest('tr').find('td select');            
@@ -305,7 +302,7 @@ function fillNumber(amount,range){
     if (amount){
 
         amountleft = amount;
-        numbers = $(".number tr:has(input:text)");
+        numbers = $(".number tr:has(input[type=text])");
         if (!numbers.length){
             return false;
         }
@@ -322,12 +319,12 @@ function fillNumber(amount,range){
             numbers.each(function(){
                 for (var i=0;i<count;i++)
                 {
-                    $(this).find(".element input:text").eq(i).val(lastamount).trigger('change');
+                    $(this).find(".element input[type=text]").eq(i).val(lastamount).trigger('change');
                     if (i==count-1){
-                        $(this).find(".element input:text").eq(i).val(lastamount).trigger('change');
+                        $(this).find(".element input[type=text]").eq(i).val(lastamount).trigger('change');
                     }
                     else{
-                        $(this).find(".element input:text").eq(i).val(newamount).trigger('change');
+                        $(this).find(".element input[type=text]").eq(i).val(newamount).trigger('change');
                     }
 
 
@@ -340,12 +337,12 @@ function fillNumber(amount,range){
             lastamount = newamount + (amount - (newamount*count));
             for (var i=0;i<count;i++)
             {
-                numbers.eq(i).find(".row-legend input:text").val(lastamount).trigger('change');
+                numbers.eq(i).find(".row-legend input[type=text]").val(lastamount).trigger('change');
                 if (i==count-1){
-                    numbers.eq(i).find(".element input:text").val(lastamount).trigger('change');
+                    numbers.eq(i).find(".element input[type=text]").val(lastamount).trigger('change');
                 }
                 else{
-                    numbers.eq(i).find(".element input:text").val(newamount).trigger('change');
+                    numbers.eq(i).find(".element input[type=text]").val(newamount).trigger('change');
                 }
 
             }
@@ -354,10 +351,10 @@ function fillNumber(amount,range){
     }
     else{
 
-        var $numbers = $(".number").find("input:text");
+        var $numbers = $(".number").find("input[type=text]");
         if ($numbers.length){
 
-            qtext = $('.survey-q-question-text, .question-text').text();            
+            qtext = $('.survey-q-question-text').text();            
             if ($numbers.length == 1 && (qtext.toLowerCase().indexOf("age") >= 0 || qtext.toLowerCase().indexOf("old are you") >= 0 )){
                 $numbers.val('33').trigger('change');
             }
@@ -376,13 +373,13 @@ function fillNumber(amount,range){
 function fillFloat(){
 
         
-    numbers = $(".float tr:has(input:text)");              
+    numbers = $(".float tr:has(input[type=text])");              
     if (!numbers.length){
         return false;
     }
     
     //numbers.each(function(){
-        $(numbers).find(".element input:text").val(10).trigger('change');
+        $(numbers).find(".element input[type=text]").val(10).trigger('change');
     //});
         
      
@@ -398,7 +395,7 @@ function getRandomInt(min, max) {
 
 
 function fillOE(tr){
-    var $text = tr.find("input:text ");
+    var $text = tr.find("input:text]");
     if ($text.length){
         $text.each(function() {
             $(this).val(93612).trigger('change');
@@ -418,47 +415,113 @@ function fillTextArea(){
     return false;
 }
 
+function setOE(inputField) {
+	var text = " ";
+	
+	var charset = "abcdefghijklmnopqrstuvwxyz0123456789";
+
+	for(var i=0;i<10;i++)
+		text += charset.charAt(Math.floor(Math.random() * charset.length));
+
+	 inputField.val(text);
+}
+
 function fillRadio(){
-    var $tableheaders = $('.col-legend, .survey-q-grid-collegend');
+    
+	$('.answers').each(function() {
+		$currQuestion = $(this);
+		$allHeaders = $currQuestion.find('.col-legend, .top-legend .legend');
+		$allRows = $currQuestion.find(".even:has('input:radio'), .odd:has('input:radio')");
 
-    var $tr = $(".even:has('input:radio'), .odd:has('input:radio')");
-    $tr.find("input:radio").prop('checked', false).change();
+		$goodColInd = [];
+		$goodCols = [];
+		
+		$goodRowInd = [];
+		$goodRows = [];
+		
+		$allHeaders.each(function() {
+			if (!$(this).find("span:contains('TERM')").length) {
+				$goodColInd.push($allHeaders.index($(this)));
+				$goodCols.push($ (this));
+			}
+		});
+		
+		$allRows.each(function() {
+			if (!$(this).find("span:contains('TERM')").length) {
+				$goodRowInd.push($allRows.index($(this)));
+				$goodRows.push($ (this));
+			}
+		});
+		
+		if ($currQuestion.find('.groupingRows').length) {
+			
+			//console.log($goodRowInd);
+			
+			for (var currTRE in $goodRowInd) {
+				var currTR = $allRows.eq($goodRowInd[currTRE]);
+				
+				//console.log(currTRE);
 
-    if ($tableheaders.length){
-        
-        
-        var $badheaders = $tableheaders.has("span:contains('TERM')");
-        $badheaders = $badheaders.map(function(){return $tableheaders.index($(this));});
-        
+				if (!currTR.find(".row-legend span:contains('TERM')").length) {
+					var item = $goodColInd[Math.floor(Math.random()*$goodColInd.length)];
+					var clickableArea = currTR.find('.groupingRows:has(input:radio)').eq(item);
 
-        $tr.each(function(){
+					var clickRadio = clickableArea.find('input:radio');
+					if (!clickRadio.is(':checked')) {
+						clickRadio.parent().click();
+					}
 
-            fillOE($(this));
-            radio = $(this).find("input:radio");
-            if ($badheaders.length && ($badheaders.length != radio.length)){
-                radio = $.grep(radio, function(n, i) {
-                    return $.inArray(i, $badheaders) ==-1;
-                });
-            }
-            
-            $(radio[Math.floor(Math.random()*radio.length)]).click();
-            
-                            
-        });
-    }
-    else{
-        
-        allterms = $tr.has("span:contains('TERM')").not($tr.has("input:text"));
-        notterms = allterms.has("span[title*='not']");
-        noterms = $tr.not($tr.has("span:contains('TERM')")).not($tr.has("input:text"));
-        rows = noterms;
-        if (notterms.length){
-            rows = notterms;
-        }
-        if (rows.length) {
-            $(rows[Math.floor(Math.random()*rows.length)]).find('input:radio').click();
-        }
-    }
+					currTR.find('.oe-left, .text').each(function() {
+						setOE($(this));
+					});
+				}
+			}
+		} else {
+			if ($goodCols.length) {
+				for (var currColI in $goodColInd) {
+					
+					var currCol = $allHeaders.eq($goodColInd[currColI]);
+					
+					var item = $goodRowInd[Math.floor(Math.random()*$goodRowInd.length)];
+					var currInd = $allHeaders.index(currCol);
+					var currRow = $allRows.eq(item);
+					
+					if ($.inArray(currInd, $goodColInd) != -1) {
+					
+						var clickableArea = $allRows.eq(item).find('.groupingCols:has(input:radio)').eq(currInd);
+						var clickRadio = clickableArea.find('input:radio');
+						
+						if (!clickRadio.is(':checked')) {
+							clickRadio.parent().click();
+						}
+
+						currCol.find('.oe-left, .text, input:text').each(function() {
+							setOE($(this));
+						});
+					}
+				}
+			} else {
+				var item = $goodRowInd[Math.floor(Math.random()*$goodRowInd.length)];
+				
+				var clickableArea = $allRows.eq(item);
+				var clickRadio = clickableArea.find('input:radio');
+				
+				if (!clickRadio.is(':checked')) {
+						if (clickRadio.closest('.even, .odd').find('.fir-icon').length) {
+							clickRadio.closest('.even, .odd').find('.fir-icon').click();
+						} else {
+							clickRadio.click();
+						}
+					}
+
+				clickableArea.find('.oe-left, .text, input:text').each(function() {
+					setOE($(this));
+				});
+				
+			}
+		}
+		
+	});
 }
 
 
@@ -476,7 +539,7 @@ function fillCheckBox(atmost,atleast,exactly){
         var $tr = $(".answers .even, .answers .odd");
         $tr.find("input:checkbox").prop('checked', false).change();
         
-        var allCheckbox = $tr.has("input:checkbox"); //not($tr.has("input:text"))
+        var allCheckbox = $tr.has("input:checkbox").not($tr.has("input:text"));
 
         var allterms = allCheckbox.has("span:contains('TERM')");
         var notTerms = allterms.has("span[title*='not']");
@@ -501,26 +564,26 @@ function fillCheckBox(atmost,atleast,exactly){
         }
 
 
-        $tableheaders = $('.survey-q-grid-collegend, .col-legend');
+        $tableheaders = $('.answers table tbody tr th.survey-q-grid-collegend, .answers table tbody tr th.col-legend');
         if ($tableheaders.length){
 
-            if (    $("h3.survey-q-error-text:contains('in this column')").length || 
-                    (
-                        ($('.col-legend.hasError').length != $('.col-legend').length) && 
-                        $('.col-legend.hasError').length
-                    ) 
-                ){
+            // var trs = allCheckbox.not($("tr.naRow, .no-answer"));
+            // notexclusive = trs.has('input[type=checkbox]:not(.exclusive)');
+            // if (notexclusive.length){
+            //     trs = notexclusive;
+            // }
+
+            if ($("h3.survey-q-error-text:contains('in this column')").length){
                 for (var i=0;i<atmost;i++){
                     trs.eq(i).each(function(){
-                        fillOE($(this));
-                        $(this).find("input:checkbox").click();
+                        $(this).find("input[type=checkbox]").parent().click();
                     });
                 }
             }else{
                 trs.each(function(){
-                    fillOE($(this));
+                    console.log($(this));
                     for (var i=0;i<atmost;i++){
-                        $(this).find("input:checkbox").eq(i).click();
+                        $(this).find("input[type=checkbox]").eq(i).parent().click();
                     }
                 });
             }
@@ -529,8 +592,6 @@ function fillCheckBox(atmost,atleast,exactly){
         else{
             for (var i=0;i<atmost;i++){
                 trs.eq(i).each(function(){
-
-                    fillOE($(this));
                     $(this).find("input:checkbox").click();
                 });
             }
@@ -561,23 +622,20 @@ function fillNext(){
     fillPage();
     //Doesn't actually do anything because the pause is too short and aren't checking status
     //setTimeout(function(){},0);
-    nextPage();
+    // nextPage();
 
 }
 
 function nextPage(){
-    $('input:submit').removeAttr('disabled').click();
+    $('input[type=submit]').removeAttr('disabled').click();
 
     //for apple study
-    $('button:submit').removeAttr('disabled').click();
-
-    //for quotas popups
-    $('button.ui-button').click()
+    $('button[type=submit]').removeAttr('disabled').click();
 }
 
 function straightLine(index){
    index -= 1;
-    $('.even, .odd').each(function(){
+    $('tr.even, tr.odd').each(function(){
            $('input:radio:eq(' + index + ')', $(this)).click();
    });
    //nextPage();
